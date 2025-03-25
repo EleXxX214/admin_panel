@@ -1,0 +1,53 @@
+# Flutter build
+build/
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.flutter-versions
+.idea/
+.metadata
+
+# Firebase
+firebase_options.dart
+*.firebase/
+
+# Systemowe
+.DS_Store
+*.log
+
+# VS Code
+.vscode/
+
+# Android
+android/.gradle/
+android/captures/
+android/key.properties
+
+# iOS
+ios/Pods/
+ios/Runner.xcworkspace/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/ServiceDefinitions.json
+
+# Web
+web/firebase-messaging-sw.js
+
+# Node/npm
+node_modules/
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.swp
+
+# Env files
+.env
+.env.*
+
+# IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
