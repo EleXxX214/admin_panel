@@ -1,3 +1,4 @@
+import 'package:admin_panel/addons/addrestaurant.dart';
 import 'package:admin_panel/addons/restaurant_list.dart';
 import 'package:flutter/material.dart';
 
@@ -41,7 +42,21 @@ class _AdminPageState extends State<AdminPage> {
           Expanded(child: Builder(
             builder: (context) {
               if (selectedPage == "restauracje") {
-                return const RestaurantList();
+                return RestaurantList(onAddPressed: () {
+                  setState(() {
+                    selectedPage = "dodaj_restauracje";
+                  });
+                });
+              } else if (selectedPage == "dodaj_restauracje") {
+                return AddRestaurant(
+                  turnBack: () {
+                    setState(
+                      () {
+                        selectedPage = "restauracje";
+                      },
+                    );
+                  },
+                );
               }
               return const Text("Wybierz coś!");
             },

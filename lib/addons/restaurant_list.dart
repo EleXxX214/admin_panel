@@ -4,8 +4,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:logger/logger.dart';
 
 class RestaurantList extends StatelessWidget {
-  const RestaurantList({super.key});
-
+  const RestaurantList({super.key, required this.onAddPressed});
+  final VoidCallback onAddPressed;
   @override
   Widget build(BuildContext context) {
     //______________________________
@@ -41,7 +41,7 @@ class RestaurantList extends StatelessWidget {
         appBar: AppBar(
             leading: IconButton(
           icon: const Icon(Icons.add),
-          onPressed: () {},
+          onPressed: onAddPressed,
         )),
         body: StreamBuilder(
             stream: FirebaseFirestore.instance
@@ -65,6 +65,7 @@ class RestaurantList extends StatelessWidget {
                   final docId = docs[index].id.trim();
 
                   return ListTile(
+                    tileColor: Colors.grey[200],
                     title: Text(name),
                     leading: buildRestaurantLogo(docId),
                     trailing: IconButton(
