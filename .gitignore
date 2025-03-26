@@ -23,6 +23,7 @@ firebase_options.dart
 android/.gradle/
 android/captures/
 android/key.properties
+android/app/google-services.json
 
 # iOS
 ios/Pods/

@@ -64,7 +64,8 @@ class RestaurantList extends StatelessWidget {
                       data['name'] ?? "Bez Nazwy"; // Pobiera nazwe restauracji
                   final docId = docs[index].id.trim();
 
-                  return ListTile(
+                  return Card(
+                      child: ListTile(
                     tileColor: Colors.grey[200],
                     title: Text(name),
                     leading: buildRestaurantLogo(docId),
@@ -72,7 +73,7 @@ class RestaurantList extends StatelessWidget {
                       icon: const Icon(Icons.more_vert),
                       onPressed: () {},
                     ),
-                  );
+                  ));
                 },
               );
             }));
