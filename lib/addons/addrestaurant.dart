@@ -39,7 +39,7 @@ class _AddRestaurantState extends State<AddRestaurant> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.image,
         allowMultiple: false,
-        withData: true, // 👈 konieczne, by załadować bytes!
+        withData: true,
       );
 
       if (result != null && result.files.first.bytes != null) {
@@ -47,7 +47,7 @@ class _AddRestaurantState extends State<AddRestaurant> {
         logger.d("Picked logo size: ${imageBytes.length}");
 
         // Limit rozmiaru — np. 5MB
-        if (imageBytes.lengthInBytes > 5 * 1024 * 1024) {
+        if (imageBytes.lengthInBytes > 8 * 3000 * 3000) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Logo za duże (max 5MB)")),
           );
@@ -57,6 +57,22 @@ class _AddRestaurantState extends State<AddRestaurant> {
         setState(() {
           logoImage = imageBytes;
         });
+      }
+    }
+
+    void pickGalleryPhotos() async {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: true,
+        withData: true,
+      );
+      if (result != null) {
+        setState(
+          () {
+            galleryImages =
+                result.files.where((file) => file.bytes != null).toList();
+          },
+        );
       }
     }
 
@@ -152,10 +168,24 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                   ),
                                 ),
                               const Divider(),
-                              TextButton(
-                                  onPressed: () {},
+                              ElevatedButton(
+                                  onPressed: pickGalleryPhotos,
                                   child:
                                       const Text("Dodaj zdjęcia do karuzeli")),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: galleryImages.map((file) {
+                                  return Image.memory(
+                                    file.bytes!,
+                                    width: 80,
+                                    height: 100,
+                                    fit: BoxFit.contain,
+                                    gaplessPlayback: true,
+                                  );
+                                }).toList(),
+                              ),
+                              const Divider(),
                               TextButton(
                                 onPressed: () async {
                                   final restaurantData = {
@@ -174,7 +204,27 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                   };
 
                                   try {
-                                    await db.add(restaurantData);
+                                    final docRef = await db.add(restaurantData);
+
+                                    final restaurantId = docRef.id;
+
+                                    if (logoImage != null) {
+                                      await FirebaseStorage.instance
+                                          .ref(
+                                              "restaurants_photos/$restaurantId/logo.jpg")
+                                          .putData(logoImage!);
+                                    }
+
+                                    for (int i = 0;
+                                        i < galleryImages.length;
+                                        i++) {
+                                      final image = galleryImages[i];
+                                      await FirebaseStorage.instance
+                                          .ref(
+                                              "restaurants_photos/$restaurantId/$i.jpg")
+                                          .putData(image.bytes!);
+                                    }
+
                                     if (!context.mounted) return;
 
                                     nameController.clear();
@@ -193,6 +243,10 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                         content: Text("Restauracja dodana"),
                                       ),
                                     );
+                                    setState(() {
+                                      logoImage = null;
+                                      galleryImages.clear();
+                                    });
                                     widget.turnBack();
                                   } catch (e) {
                                     if (!context.mounted) return;
