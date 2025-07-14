@@ -28,6 +28,7 @@ final TextEditingController thursdayController = TextEditingController();
 final TextEditingController fridayController = TextEditingController();
 final TextEditingController saturdayController = TextEditingController();
 final TextEditingController sundayController = TextEditingController();
+final TextEditingController menuUrlController = TextEditingController();
 
 class _AddRestaurantState extends State<AddRestaurant> {
   Logger logger = Logger();
@@ -49,6 +50,7 @@ class _AddRestaurantState extends State<AddRestaurant> {
       fridayController.text = widget.initialData!["friday"] ?? "";
       saturdayController.text = widget.initialData!["saturday"] ?? "";
       sundayController.text = widget.initialData!["sunday"] ?? "";
+      menuUrlController.text = widget.initialData!["menuUrl"] ?? "";
       initialized = true;
     }
   }
@@ -137,6 +139,11 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                     decoration:
                                         const InputDecoration(hintText: "Opis"),
                                   )),
+                              TextField(
+                                controller: menuUrlController,
+                                decoration:
+                                    const InputDecoration(hintText: "URL menu"),
+                              ),
                               const Divider(),
                               const Text("Godziny otwarcia"),
                               const Divider(),
@@ -215,6 +222,7 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                     'address': addressController.text.trim(),
                                     'description':
                                         descriptionController.text.trim(),
+                                    'menuUrl': menuUrlController.text.trim(),
                                     'monday': mondayController.text.trim(),
                                     'tuesday': tuesdayController.text.trim(),
                                     'wednesday':
@@ -272,6 +280,7 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                     fridayController.clear();
                                     saturdayController.clear();
                                     sundayController.clear();
+                                    menuUrlController.clear();
 
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

@@ -1,5 +1,6 @@
 import 'package:admin_panel/addons/addrestaurant.dart';
 import 'package:admin_panel/addons/restaurant_list.dart';
+import 'package:admin_panel/addons/suggestions.dart';
 import 'package:flutter/material.dart';
 
 class AdminPage extends StatefulWidget {
@@ -31,6 +32,12 @@ class _AdminPageState extends State<AdminPage> {
                 },
               ),
               ListTile(
+                title: const Text("Sugestie"),
+                onTap: () {
+                  setState(() => selectedPage = "suggestions");
+                },
+              ),
+              ListTile(
                 title: const Text("Użytkownicy"),
                 onTap: () {
                   selectedPage = "uzytkownicy";
@@ -57,7 +64,10 @@ class _AdminPageState extends State<AdminPage> {
                     );
                   },
                 );
+              } else if (selectedPage == "suggestions") {
+                return SuggestionsPage();
               }
+
               return const Text("Wybierz coś!");
             },
           ))
