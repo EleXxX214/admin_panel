@@ -7,9 +7,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:logger/logger.dart';
 
 class AddRestaurant extends StatefulWidget {
-  const AddRestaurant({super.key, required this.turnBack});
+  const AddRestaurant(
+      {super.key, required this.turnBack, this.docId, this.initialData});
 
   final VoidCallback turnBack;
+  final String? docId;
+  final Map<String, dynamic>? initialData;
 
   @override
   State<AddRestaurant> createState() => _AddRestaurantState();
@@ -30,6 +33,25 @@ class _AddRestaurantState extends State<AddRestaurant> {
   Logger logger = Logger();
   Uint8List? logoImage;
   List<PlatformFile> galleryImages = [];
+  bool initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!initialized && widget.initialData != null) {
+      nameController.text = widget.initialData!["name"] ?? "";
+      addressController.text = widget.initialData!["address"] ?? "";
+      descriptionController.text = widget.initialData!["description"] ?? "";
+      mondayController.text = widget.initialData!["monday"] ?? "";
+      tuesdayController.text = widget.initialData!["tuesday"] ?? "";
+      wednesdayController.text = widget.initialData!["wednesday"] ?? "";
+      thursdayController.text = widget.initialData!["thursday"] ?? "";
+      fridayController.text = widget.initialData!["friday"] ?? "";
+      saturdayController.text = widget.initialData!["saturday"] ?? "";
+      sundayController.text = widget.initialData!["sunday"] ?? "";
+      initialized = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -204,9 +226,22 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                   };
 
                                   try {
-                                    final docRef = await db.add(restaurantData);
-
-                                    final restaurantId = docRef.id;
+                                    String restaurantId;
+                                    if (widget.docId != null) {
+                                      // Tryb edycji
+                                      await FirebaseFirestore.instance
+                                          .collection("restaurants")
+                                          .doc(widget.docId)
+                                          .update(restaurantData);
+                                      restaurantId = widget.docId!;
+                                    } else {
+                                      // Dodawanie nowej restauracji
+                                      final docRef = await FirebaseFirestore
+                                          .instance
+                                          .collection("restaurants")
+                                          .add(restaurantData);
+                                      restaurantId = docRef.id;
+                                    }
 
                                     if (logoImage != null) {
                                       await FirebaseStorage.instance
@@ -239,8 +274,10 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                     sundayController.clear();
 
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Restauracja dodana"),
+                                      SnackBar(
+                                        content: Text(widget.docId != null
+                                            ? "Restauracja zaktualizowana"
+                                            : "Restauracja dodana"),
                                       ),
                                     );
                                     setState(() {
@@ -255,7 +292,9 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                     );
                                   }
                                 },
-                                child: const Text("Dodaj restauracje"),
+                                child: Text(widget.docId != null
+                                    ? "Zapisz zmiany"
+                                    : "Dodaj restauracje"),
                               )
                             ],
                           ),
