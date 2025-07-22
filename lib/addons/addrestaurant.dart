@@ -36,6 +36,46 @@ class _AddRestaurantState extends State<AddRestaurant> {
   List<PlatformFile> galleryImages = [];
   bool initialized = false;
 
+  // Dodane do obsługi filtrów
+  List<String> availableFilters = [];
+  List<String> selectedFilters = [];
+  bool filtersLoading = true;
+  bool isVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pobierz filtry z Firestore
+    FirebaseFirestore.instance.collection('filters').get().then((snapshot) {
+      setState(() {
+        availableFilters = snapshot.docs.map((doc) {
+          if (doc.data().containsKey('food_type') &&
+              doc['food_type'] != null &&
+              doc['food_type'].toString().isNotEmpty) {
+            return doc['food_type'].toString();
+          } else if (doc.data().containsKey('name') &&
+              doc['name'] != null &&
+              doc['name'].toString().isNotEmpty) {
+            return doc['name'].toString();
+          } else {
+            return doc.id;
+          }
+        }).toList();
+        filtersLoading = false;
+        // Jeśli edycja, ustaw wybrane filtry
+        if (widget.initialData != null) {
+          selectedFilters = [
+            widget.initialData!["filter1"],
+            widget.initialData!["filter2"],
+            widget.initialData!["filter3"],
+            widget.initialData!["filter4"],
+            widget.initialData!["filter5"],
+          ].whereType<String>().where((f) => f.isNotEmpty).toList();
+        }
+      });
+    });
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -51,6 +91,7 @@ class _AddRestaurantState extends State<AddRestaurant> {
       saturdayController.text = widget.initialData!["saturday"] ?? "";
       sundayController.text = widget.initialData!["sunday"] ?? "";
       menuUrlController.text = widget.initialData!["menuUrl"] ?? "";
+      isVisible = widget.initialData!["isVisible"] ?? true;
       initialized = true;
     }
   }
@@ -183,6 +224,20 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                     hintText: "Niedziela"),
                               ),
                               const Divider(),
+                              Row(
+                                children: [
+                                  const Text("Restauracja widoczna:"),
+                                  Switch(
+                                    value: isVisible,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        isVisible = val;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const Divider(),
                               ElevatedButton(
                                   onPressed: pickPhoto,
                                   child: const Text("Dodaj logo")),
@@ -215,8 +270,46 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                 }).toList(),
                               ),
                               const Divider(),
+                              const Text("Filtry (max 5):"),
+                              filtersLoading
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(8.0),
+                                      child: Center(
+                                          child: CircularProgressIndicator()),
+                                    )
+                                  : Wrap(
+                                      spacing: 8,
+                                      children: availableFilters.map((filter) {
+                                        final isSelected =
+                                            selectedFilters.contains(filter);
+                                        return FilterChip(
+                                          label: Text(filter),
+                                          selected: isSelected,
+                                          onSelected: (selected) {
+                                            setState(() {
+                                              if (selected) {
+                                                if (selectedFilters.length <
+                                                    5) {
+                                                  selectedFilters.add(filter);
+                                                }
+                                              } else {
+                                                selectedFilters.remove(filter);
+                                              }
+                                            });
+                                          },
+                                        );
+                                      }).toList(),
+                                    ),
                               TextButton(
                                 onPressed: () async {
+                                  if (selectedFilters.isEmpty) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              "Wybierz przynajmniej jeden filtr!")),
+                                    );
+                                    return;
+                                  }
                                   final restaurantData = {
                                     'name': nameController.text.trim(),
                                     'address': addressController.text.trim(),
@@ -231,6 +324,13 @@ class _AddRestaurantState extends State<AddRestaurant> {
                                     'friday': fridayController.text.trim(),
                                     'saturday': saturdayController.text.trim(),
                                     'sunday': sundayController.text.trim(),
+                                    'isVisible': isVisible,
+                                    // Zawsze ustaw filter1–filter5, brakujące jako pusty string
+                                    for (int i = 0; i < 5; i++)
+                                      'filter${i + 1}':
+                                          i < selectedFilters.length
+                                              ? selectedFilters[i]
+                                              : '',
                                   };
 
                                   try {

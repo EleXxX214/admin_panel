@@ -99,56 +99,79 @@ class _RestaurantListState extends State<RestaurantList> {
                     tileColor: Colors.grey[200],
                     title: Text(name),
                     leading: buildRestaurantLogo(docId),
-                    trailing: MenuAnchor(
-                      builder: (BuildContext context, MenuController controller,
-                          Widget? child) {
-                        return IconButton(
-                            onPressed: () {
-                              if (controller.isOpen) {
-                                controller.close();
-                              } else {
-                                controller.open();
-                              }
-                            },
-                            icon: const Icon(Icons.more_vert));
-                      },
-                      menuChildren: <Widget>[
-                        MenuItemButton(
-                          onPressed: () {
-                            startEditing(docId, data);
-                          },
-                          child: const Text("Edytuj"),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Ikona widoczności
+                        Icon(
+                          (data['isVisible'] ?? true)
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: (data['isVisible'] ?? true)
+                              ? Colors.green
+                              : Colors.grey,
                         ),
-                        MenuItemButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text(
-                                    "Czy na pewno chcesz usunąć restaurację?"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: const Text("Anuluj"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                      FirebaseFirestore.instance
-                                          .collection("restaurants")
-                                          .doc(docId)
-                                          .delete();
-                                    },
-                                    child: Text("Usuń restaurację $name"),
-                                  ),
-                                ],
-                              ),
-                            );
+                        Switch(
+                          value: data['isVisible'] ?? true,
+                          onChanged: (val) async {
+                            await FirebaseFirestore.instance
+                                .collection("restaurants")
+                                .doc(docId)
+                                .update({'isVisible': val});
                           },
-                          child: const Text("Usuń"),
-                        )
+                        ),
+                        MenuAnchor(
+                          builder: (BuildContext context,
+                              MenuController controller, Widget? child) {
+                            return IconButton(
+                                onPressed: () {
+                                  if (controller.isOpen) {
+                                    controller.close();
+                                  } else {
+                                    controller.open();
+                                  }
+                                },
+                                icon: const Icon(Icons.more_vert));
+                          },
+                          menuChildren: <Widget>[
+                            MenuItemButton(
+                              onPressed: () {
+                                startEditing(docId, data);
+                              },
+                              child: const Text("Edytuj"),
+                            ),
+                            MenuItemButton(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text(
+                                        "Czy na pewno chcesz usunąć restaurację?"),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text("Anuluj"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                          FirebaseFirestore.instance
+                                              .collection("restaurants")
+                                              .doc(docId)
+                                              .delete();
+                                        },
+                                        child: Text("Usuń restaurację $name"),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                              child: const Text("Usuń"),
+                            )
+                          ],
+                        ),
                       ],
                     ),
                   ));
